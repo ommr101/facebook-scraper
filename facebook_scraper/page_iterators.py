@@ -84,7 +84,9 @@ def generic_iter_pages(
         for retry in range(1, RETRY_LIMIT + 1):
             try:
                 logger.debug("Requesting page from: %s", next_url)
-                response = request_fn(next_url)
+
+                params = kwargs.pop('params', {})
+                response = request_fn(next_url, params=params)
                 break
             except HTTPError as e:
                 if e.response.status_code == 500 and retry < RETRY_LIMIT:

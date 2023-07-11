@@ -842,6 +842,13 @@ class FacebookScraper:
         self.set_user_agent(
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/603.3.8 (KHTML, like Gecko) Version/10.1.2 Safari/603.3.8"
         )
+
+        group_sort_setting = kwargs.pop('group_sort_setting')
+        if group_sort_setting:
+            kwargs['params'] = {
+                "sorting_setting": group_sort_setting
+            }
+
         iter_pages_fn = partial(iter_group_pages, group=group, request_fn=self.get, **kwargs)
         return self._generic_get_posts(extract_group_post, iter_pages_fn, **kwargs)
 
@@ -864,11 +871,15 @@ class FacebookScraper:
             if not url.startswith("http"):
                 url = utils.urljoin(FB_MOBILE_BASE_URL, url)
 
+            requests_kwargs_params = self.requests_kwargs.pop('params', {})  # in case it was preconfigured
+            params = kwargs.pop('params', {})
+            params.update(requests_kwargs_params)
+
             if kwargs.get("post"):
                 kwargs.pop("post")
                 response = self.session.post(url=url, **kwargs)
             else:
-                response = self.session.get(url=url, **self.requests_kwargs, **kwargs)
+                response = self.session.get(url=url, **self.requests_kwargs, **kwargs, params=params)
             DEBUG = False
             if DEBUG:
                 for filename in os.listdir("."):
